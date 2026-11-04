@@ -20,32 +20,31 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install Gradle 8.9
+        run: |
+          wget https://services.gradle.org/distributions/gradle-8.9-bin.zip
+          unzip -q gradle-8.9-bin.zip -d /opt
+          echo "/opt/gradle-8.9/bin" >> $GITHUB_PATH
+
       - name: Extract V7
         run: |
           unzip -q intabih_android_v7_source.zip -d source
 
-      - name: Find Gradle
-        run: |
-          find source -name gradlew
-
       - name: Build APK
         run: |
-          GRADLE_FILE=$(find source -name gradlew | head -n 1)
-
-          if [ -z "$GRADLE_FILE" ]; then
-            echo "ERROR: Gradle wrapper not found"
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$GRADLE_FILE")
-          cd "$PROJECT_DIR"
-
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          cd source
+          gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Intabih-V7-APK
-          path: source/**/build/outputs/apk/debug/*.apk
+          path: source/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
